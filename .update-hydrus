@@ -46,7 +46,7 @@ fi
 
 dep() { python2 -c '__import__("virtualenv").main()' --version 2>/dev/null; }
 if ! dep; then
-    message='echo Hydrus requires virtualenv - this should install it'
+    message='echo Hydrus Updater requires virtualenv - this should install it'
     case $DISTRIB_ID in
         Arch) ( _terminal "$message; sudo pacman -S python2-virtualenv" );;
         Ubuntu) ( _terminal "$message; sudo apt-get install python-virtualenv" );;
@@ -56,7 +56,7 @@ fi
 
 dep() { command -v pip2 >/dev/null; }
 if ! dep; then
-    message='echo Hydrus requires pip2 - this should install it'
+    message='echo Hydrus Updater requires pip2 - this should install it'
     case $DISTRIB_ID in
         Arch) ( _terminal "$message; sudo pacman -S python2-pip" );;
         Ubuntu) ( _terminal "$message; sudo apt-get install python-pip" );;
