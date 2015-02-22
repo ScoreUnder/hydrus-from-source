@@ -5,7 +5,8 @@ cd "${0%/*}"
 pipecheck() { ( exit "${PIPESTATUS[0]}" ); }
 _terminal() {  # This function execs, be careful
     exec </dev/null >/dev/null 2>&1
-    set -- -e bash -c "$*"
+    export RUN_COMMAND="$*"
+    set -- -e 'bash -c "eval $RUN_COMMAND"'
     try() { command -v "$1" && exec "$@"; }
     try "$TERMINAL" "$@"
     try i3-sensible-terminal "$@"
