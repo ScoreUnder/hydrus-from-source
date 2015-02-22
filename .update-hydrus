@@ -177,7 +177,7 @@ then
 fi
 
 # Ask the user what to update to
-update_to=$(zenity --forms --text='Update Hydrus' --add-combo='Desired version' --combo-values="latest|$(git tag -l | sort -nr | tr '\n' '|')")
+update_to=$(zenity --forms --text='Update Hydrus' --add-list='Desired version' --list-values="latest|$(git tag -l | sort -nr | tr '\n' '|')")
 [ -z "$update_to" ] && exit
 [ "$update_to" = latest ] && update_to=master
 
