@@ -1,4 +1,5 @@
 #!/bin/sh
+exec > hydrus-runtime.log 2>&1
 # Remove old virtual environment if it exists
 rm -rf hydrus-runtime
 # Some machines don't have virtualenv2

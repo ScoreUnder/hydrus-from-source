@@ -87,7 +87,7 @@ if ! [ -f hydrus-runtime/installed ]; then
         ! pipecheck
     then
         # If setup failed, warn user
-        error 'Could not create the virtual environment. Please run ./.create-environment in a terminal and check its output for errors.'
+        error 'Could not create the virtual environment. Please check the output of hydrus-runtime.log for errors.'
     fi
 fi
 . hydrus-runtime/bin/activate
