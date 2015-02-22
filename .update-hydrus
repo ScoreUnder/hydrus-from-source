@@ -32,53 +32,31 @@ error() {
 }
 
 . /etc/lsb-release
-# Check for python2
 
-dep() { python2 -c 'exit(0)' 2>/dev/null; }
-if ! dep; then
-    message='echo Hydrus requires python2 - this should install it'
-    case $DISTRIB_ID in
-        Arch) ( _terminal "$message; sudo pacman -S python2" );;
-        Ubuntu) ( _terminal "$message; sudo apt-get install python" );;
-    esac
-    dep || error 'Please install python 2.'
-fi
-
-dep() { python2 -c '__import__("virtualenv").main()' --version 2>/dev/null; }
-if ! dep; then
-    message='echo Hydrus Updater requires virtualenv - this should install it'
-    case $DISTRIB_ID in
-        Arch) ( _terminal "$message; sudo pacman -S python2-virtualenv" );;
-        Ubuntu) ( _terminal "$message; sudo apt-get install python-virtualenv" );;
-    esac
-    dep || error 'Please install virtualenv2. Your system might call this "python2-virtualenv".'
-fi
-
-dep() { command -v pip2 >/dev/null; }
-if ! dep; then
-    message='echo Hydrus Updater requires pip2 - this should install it'
-    case $DISTRIB_ID in
-        Arch) ( _terminal "$message; sudo pacman -S python2-pip" );;
-        Ubuntu) ( _terminal "$message; sudo apt-get install python-pip" );;
-    esac
-    dep || error 'Please install pip2. Your system might call this "python2-pip".'
-fi
-
+message='echo "Some dependencies are required to install Hydrus from source. This will attempt to install them."'
 case $DISTRIB_ID in
+    Arch)
+        deps="python2 python2-virtualenv python2-pip libyaml libjpeg freetype2 wxpython zlib opencv git"
+        unmet=$(pacman -T $deps)
+        [ -n "$unmet" ] &&
+            ( export unmet; _terminal "$message; sudo pacman -S \$unmet" )
+        ;;
     Ubuntu)
-        dep() { dpkg -s python-dev; }
-        dep ||
-            ( _terminal "echo 'Hydrus requires python-dev (for the lz4 library), this should install it'; sudo apt-get install python-dev" )
-        dep ||
-            error 'Please install python-dev'
-
-        dep() { dpkg -s libyaml-dev; }
-        dep ||
-            ( _terminal "echo 'Hydrus requires libyaml-dev (for the beautifulsoup4 library), this should install it'; sudo apt-get install libyaml-dev" )
-        dep ||
-            error 'Please install libyaml-dev'
+        deps="python python-virtualenv python-pip python-dev libyaml-dev libjpeg-dev libfreetype6-dev zlib1g-dev python-wxversion python-wxgtk2.8 python-opencv git"
+        unmet=$(apt-cache policy $deps | grep -B1 'Installed: (none)' | grep '^[^ ].*:$' | tr -d :)
+        [ -n "$unmet" ] &&
+            ( export unmet; _terminal "$message; sudo apt-get install \$unmet" )
         ;;
 esac
+
+# Check for dependencies - round 2, OS independent
+python2 -c 'exit(0)' 2>/dev/null || error 'Please install python 2.'
+
+python2 -c '__import__("virtualenv").main()' --version 2>/dev/null ||
+    error 'Please install virtualenv2. Your system might call this "python2-virtualenv".'
+
+command -v pip2 >/dev/null ||
+    error 'Please install pip2. Your system might call this "python2-pip".'
 
 # Ensure we have the venv set up
 if ! [ -f hydrus-runtime/installed ]; then
@@ -92,36 +70,18 @@ if ! [ -f hydrus-runtime/installed ]; then
 fi
 . hydrus-runtime/bin/activate
 
-# Check dependencies
-dep() { python -c 'import wx' 2>/dev/null; }
-if ! dep; then
-    message='echo Hydrus requires wxpython - this should install it'
-    case $DISTRIB_ID in
-        Arch) ( _terminal "$message; sudo pacman -S wxpython" );;
-        Ubuntu) ( _terminal "$message; sudo apt-get install python-wxgtk2.8 python-wxversion" );;
-    esac
-    dep || error \
+# Check dependencies - round 3, python imports from the virtualenv
+python -c 'import wx' 2>/dev/null || error \
 'Please install wxpython.
 Depending on your system, it might be called "wxpython" or "python-wxgtk3.0".
 
 If your system does not provide this, please follow the guide at http://wiki.wxpython.org/CheckInstall'
-fi
 
-dep() { python -c 'import cv' 2>/dev/null; }
-if ! dep; then
-    message='echo Hydrus requires opencv - this should install it'
-    case $DISTRIB_ID in
-        Arch) ( _terminal "$message; sudo pacman -S opencv" );;
-        Ubuntu) ( _terminal "$message; sudo apt-get install python-opencv" );;
-    esac
-    dep || error \
+python -c 'import cv' 2>/dev/null || error \
 'Please install pyopencv.
 Depending on your system, it might be called "python-opencv" or it may be packaged along with "opencv" itself.'
-fi
 
-if ! command -v git >/dev/null; then
-    error 'Please install git. This is used to update and rollback hydrus.'
-fi
+command -v git >/dev/null || error 'Please install git. This is used to update and rollback hydrus.'
 
 # Okay, hopefully that wasn't too painful.
 # Download source from git if it's not here already
