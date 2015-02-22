@@ -44,7 +44,7 @@ if ! dep; then
     dep || error 'Please install python 2.'
 fi
 
-dep() { command -v virtualenv2 2>/dev/null || command -v virtualenv 2>/dev/null; }
+dep() { python2 -c '__import__("virtualenv").main()' 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires virtualenv - this should install it'
     case $DISTRIB_ID in
@@ -54,7 +54,7 @@ if ! dep; then
     dep || error 'Please install virtualenv2. Your system might call this "python2-virtualenv".'
 fi
 
-dep() { command -v pip2 2>/dev/null; }
+dep() { command -v pip2 >/dev/null; }
 if ! dep; then
     message='echo Hydrus requires pip2 - this should install it'
     case $DISTRIB_ID in

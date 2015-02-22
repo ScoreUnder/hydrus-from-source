@@ -1,8 +1,8 @@
 #!/bin/sh
 # Remove old virtual environment if it exists
 rm -rf hydrus-runtime
-# Some machines don't have virtualenv2 but virtualenv works
-command -v virtualenv2 >/dev/null || virtualenv2() { virtualenv "$@"; }
+# Some machines don't have virtualenv2
+virtualenv2() { python2 -c '__import__("virtualenv").main()' "$@"; }
 # Create a new one
 virtualenv2 --system-site-packages -p python2.7 hydrus-runtime || exit
 # Use it from here on
