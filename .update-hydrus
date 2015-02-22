@@ -5,6 +5,7 @@ cd "${0%/*}"
 pipecheck() { ( exit "${PIPESTATUS[0]}" ); }
 _terminal() {  # This function execs, be careful
     exec </dev/null >/dev/null 2>&1
+    set -- -e bash -c "$*"
     try() { command -v "$1" && exec "$@"; }
     try "$TERMINAL" "$@"
     try i3-sensible-terminal "$@"
@@ -20,7 +21,7 @@ if ! command -v zenity > /dev/null; then
     if command -v xmessage > /dev/null; then
         xmessage "$msg"
     else
-        _terminal -e "echo '$msg'; read x"
+        _terminal "echo '$msg'; read x"
     fi
     exit
 fi
@@ -36,8 +37,8 @@ dep() { python2 -c 'exit(0)' 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires python2 - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e "$message; sudo pacman -S python2" );;
-        Ubuntu) ( _terminal -e "$message; sudo apt-get install python" );;
+        Arch) ( _terminal "$message; sudo pacman -S python2" );;
+        Ubuntu) ( _terminal "$message; sudo apt-get install python" );;
     esac
     dep || error 'Please install python 2.'
 fi
@@ -46,8 +47,8 @@ dep() { command -v virtualenv2 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires virtualenv2 - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e "$message; sudo pacman -S python2-virtualenv" );;
-        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-virtualenv" );;
+        Arch) ( _terminal "$message; sudo pacman -S python2-virtualenv" );;
+        Ubuntu) ( _terminal "$message; sudo apt-get install python-virtualenv" );;
     esac
     dep || error 'Please install virtualenv2. Your system might call this "python2-virtualenv".'
 fi
@@ -56,8 +57,8 @@ dep() { command -v pip2 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires pip2 - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e "$message; sudo pacman -S python2-pip" );;
-        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-pip" );;
+        Arch) ( _terminal "$message; sudo pacman -S python2-pip" );;
+        Ubuntu) ( _terminal "$message; sudo apt-get install python-pip" );;
     esac
     dep || error 'Please install pip2. Your system might call this "python2-pip".'
 fi
@@ -79,8 +80,8 @@ dep() { python -c 'import wx' 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires wxpython - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e "$message; sudo pacman -S wxpython" );;
-        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-wxgtk2.8 python-wxversion" );;
+        Arch) ( _terminal "$message; sudo pacman -S wxpython" );;
+        Ubuntu) ( _terminal "$message; sudo apt-get install python-wxgtk2.8 python-wxversion" );;
     esac
     dep || error \
 'Please install wxpython.
@@ -93,8 +94,8 @@ dep() { python -c 'import cv' 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires opencv - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e "$message; sudo pacman -S opencv" );;
-        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-opencv" );;
+        Arch) ( _terminal "$message; sudo pacman -S opencv" );;
+        Ubuntu) ( _terminal "$message; sudo apt-get install python-opencv" );;
     esac
     dep || error \
 'Please install pyopencv.
