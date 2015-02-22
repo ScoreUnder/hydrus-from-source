@@ -34,18 +34,32 @@ error() {
 
 dep() { python2 -c 'exit(0)' 2>/dev/null; }
 if ! dep; then
+    message='echo Hydrus requires python2 - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e 'echo Hydrus requires python2 - this should install it; pacman -S python2' );;
+        Arch) ( _terminal -e "$message; sudo pacman -S python2" );;
+        Ubuntu) ( _terminal -e "$message; sudo apt-get install python" );;
     esac
     dep || error 'Please install python 2.'
 fi
 
 dep() { command -v virtualenv2 2>/dev/null; }
 if ! dep; then
+    message='echo Hydrus requires virtualenv2 - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e 'echo Hydrus requires virtualenv2 - this should install it; pacman -S python2-virtualenv' );;
+        Arch) ( _terminal -e "$message; sudo pacman -S python2-virtualenv" );;
+        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-virtualenv" );;
     esac
     dep || error 'Please install virtualenv2. Your system might call this "python2-virtualenv".'
+fi
+
+dep() { command -v pip2 2>/dev/null; }
+if ! dep; then
+    message='echo Hydrus requires pip2 - this should install it'
+    case $DISTRIB_ID in
+        Arch) ( _terminal -e "$message; sudo pacman -S python2-pip" );;
+        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-pip" );;
+    esac
+    dep || error 'Please install pip2. Your system might call this "python2-pip".'
 fi
 
 # Ensure we have the venv set up
@@ -63,8 +77,10 @@ fi
 # Check dependencies
 dep() { python -c 'import wx' 2>/dev/null; }
 if ! dep; then
+    message='echo Hydrus requires wxpython - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e 'echo Hydrus requires wxpython - this should install it; pacman -S wxpython' );;
+        Arch) ( _terminal -e "$message; sudo pacman -S wxpython" );;
+        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-wxgtk2.8 python-wxversion" );;
     esac
     dep || error \
 'Please install wxpython.
@@ -75,8 +91,10 @@ fi
 
 dep() { python -c 'import cv' 2>/dev/null; }
 if ! dep; then
+    message='echo Hydrus requires opencv - this should install it'
     case $DISTRIB_ID in
-        Arch) ( _terminal -e 'echo Hydrus requires opencv - this should install it; pacman -S opencv' );;
+        Arch) ( _terminal -e "$message; sudo pacman -S opencv" );;
+        Ubuntu) ( _terminal -e "$message; sudo apt-get install python-opencv" );;
     esac
     dep || error \
 'Please install pyopencv.
