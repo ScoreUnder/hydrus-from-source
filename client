@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # This script is here so that you can double click from file managers like thunar.
 # Thunar disabled double-clicking on shell scripts because they often don't work like that.
 import os, sys

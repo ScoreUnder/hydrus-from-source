@@ -3,6 +3,16 @@
 cd "${0%/*}"
 
 pipecheck() { ( exit "${PIPESTATUS[0]}" ); }
+_terminal() {  # This function execs, be careful
+    exec </dev/null >/dev/null 2>&1
+    try() { command -v "$1" && exec "$@"; }
+    try "$TERMINAL" "$@"
+    try i3-sensible-terminal "$@"
+    try sakura "$@"
+    try gnome-terminal "$@"
+    try urxvt "$@"
+    try xterm "$@"
+}
 
 # Check for zenity. This is used for user interaction.
 if ! command -v zenity > /dev/null; then
@@ -10,7 +20,7 @@ if ! command -v zenity > /dev/null; then
     if command -v xmessage > /dev/null; then
         xmessage "$msg"
     else
-        xterm -e "echo '$msg'; read x"
+        _terminal -e "echo '$msg'; read x"
     fi
     exit
 fi
@@ -18,6 +28,25 @@ fi
 error() {
     zenity --error --title="Error in update-hydrus" --text="$*"; exit 1
 }
+
+. /etc/lsb-release
+# Check for python2
+
+dep() { python2 -c 'exit(0)' 2>/dev/null; }
+if ! dep; then
+    case $DISTRIB_ID in
+        Arch) ( _terminal -e 'echo Hydrus requires python2 - this should install it; pacman -S python2' );;
+    esac
+    dep || error 'Please install python 2.'
+fi
+
+dep() { command -v virtualenv2 2>/dev/null; }
+if ! dep; then
+    case $DISTRIB_ID in
+        Arch) ( _terminal -e 'echo Hydrus requires virtualenv2 - this should install it; pacman -S python2-virtualenv' );;
+    esac
+    dep || error 'Please install virtualenv2. Your system might call this "python2-virtualenv".'
+fi
 
 # Ensure we have the venv set up
 if ! [ -f hydrus-runtime/installed ]; then
@@ -32,16 +61,24 @@ fi
 . hydrus-runtime/bin/activate
 
 # Check dependencies
-if ! python -c 'import wx' 2>/dev/null; then
-    error \
+dep() { python -c 'import wx' 2>/dev/null; }
+if ! dep; then
+    case $DISTRIB_ID in
+        Arch) ( _terminal -e 'echo Hydrus requires wxpython - this should install it; pacman -S wxpython' );;
+    esac
+    dep || error \
 'Please install wxpython.
 Depending on your system, it might be called "wxpython" or "python-wxgtk3.0".
 
 If your system does not provide this, please follow the guide at http://wiki.wxpython.org/CheckInstall'
 fi
 
-if ! python -c 'import cv' 2>/dev/null; then
-    error \
+dep() { python -c 'import cv' 2>/dev/null; }
+if ! dep; then
+    case $DISTRIB_ID in
+        Arch) ( _terminal -e 'echo Hydrus requires opencv - this should install it; pacman -S opencv' );;
+    esac
+    dep || error \
 'Please install pyopencv.
 Depending on your system, it might be called "python-opencv" or it may be packaged along with "opencv" itself.'
 fi
