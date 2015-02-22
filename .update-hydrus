@@ -83,7 +83,7 @@ esac
 # Ensure we have the venv set up
 if ! [ -f hydrus-runtime/installed ]; then
     if
-        ./.create-environment | zenity --progress --pulsate --no-cancel --auto-close --text='Setting up virtual environment'
+        ./.create-environment | zenity --progress --pulsate --no-cancel --auto-close --text='Setting up virtual environment - this may take some time'
         ! pipecheck
     then
         # If setup failed, warn user
