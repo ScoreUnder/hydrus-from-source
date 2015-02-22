@@ -44,9 +44,9 @@ if ! dep; then
     dep || error 'Please install python 2.'
 fi
 
-dep() { command -v virtualenv2 2>/dev/null; }
+dep() { command -v virtualenv2 2>/dev/null || command -v virtualenv 2>/dev/null; }
 if ! dep; then
-    message='echo Hydrus requires virtualenv2 - this should install it'
+    message='echo Hydrus requires virtualenv - this should install it'
     case $DISTRIB_ID in
         Arch) ( _terminal "$message; sudo pacman -S python2-virtualenv" );;
         Ubuntu) ( _terminal "$message; sudo apt-get install python-virtualenv" );;
