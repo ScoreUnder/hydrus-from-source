@@ -42,6 +42,7 @@ case $DISTRIB_ID in
             ( export unmet; _terminal "$message; sudo pacman -S \$unmet || { echo 'Press return to continue'; read; }" )
         ;;
     Ubuntu)
+        # Includes some deps needed to build wxPython
         deps="dpkg-dev build-essential swig python python-virtualenv python-pip python-dev libyaml-dev libjpeg-dev libtiff-dev checkinstall freeglut3 freeglut3-dev libgtk2.0-dev libsdl1.2-dev libgstreamer-plugins-base0.10-dev libfreetype6-dev zlib1g-dev python-wxversion python-opencv git checkinstall"
         unmet=$(apt-cache policy $deps | grep -B1 'Installed: (none)' | grep '^[^ ].*:$' | tr -d :)
         [ -n "$unmet" ] &&
@@ -71,7 +72,7 @@ fi
 . hydrus-runtime/bin/activate
 
 # Check dependencies - round 3, python imports from the virtualenv
-dep() { python -c '__import__("wx").BoxSizer(wx.HORIZONTAL).GetItemCount()' 2>/dev/null; }
+dep() { python -c 'import wx;wx.BoxSizer(wx.HORIZONTAL).GetItemCount()' 2>/dev/null; }
 if ! dep; then
     if python -c 'import wx' 2>/dev/null; then
         text="Your version of wxPython is too old for Hydrus."
