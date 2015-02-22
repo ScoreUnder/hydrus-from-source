@@ -44,7 +44,7 @@ if ! dep; then
     dep || error 'Please install python 2.'
 fi
 
-dep() { python2 -c '__import__("virtualenv").main()' 2>/dev/null; }
+dep() { python2 -c '__import__("virtualenv").main()' --version 2>/dev/null; }
 if ! dep; then
     message='echo Hydrus requires virtualenv - this should install it'
     case $DISTRIB_ID in
