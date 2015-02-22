@@ -64,6 +64,22 @@ if ! dep; then
     dep || error 'Please install pip2. Your system might call this "python2-pip".'
 fi
 
+case $DISTRIB_ID in
+    Ubuntu)
+        dep() { dpkg -s python-dev; }
+        dep ||
+            ( _terminal "echo 'Hydrus requires python-dev (for the lz4 library), this should install it'; sudo apt-get install python-dev" )
+        dep ||
+            error 'Please install python-dev'
+
+        dep() { dpkg -s libyaml-dev; }
+        dep ||
+            ( _terminal "echo 'Hydrus requires libyaml-dev (for the beautifulsoup4 library), this should install it'; sudo apt-get install libyaml-dev" )
+        dep ||
+            error 'Please install libyaml-dev'
+        ;;
+esac
+
 # Ensure we have the venv set up
 if ! [ -f hydrus-runtime/installed ]; then
     if
