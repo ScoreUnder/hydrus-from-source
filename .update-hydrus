@@ -1,0 +1,121 @@
+#!/bin/bash
+# Uses the PIPESTATUS bashism
+cd "${0%/*}"
+
+pipecheck() { ( exit "${PIPESTATUS[0]}" ); }
+
+# Check for zenity. This is used for user interaction.
+if ! command -v zenity > /dev/null; then
+    msg='Please install zenity to use this script!'
+    if command -v xmessage > /dev/null; then
+        xmessage "$msg"
+    else
+        xterm -e "echo '$msg'; read x"
+    fi
+    exit
+fi
+
+error() {
+    zenity --error --title="Error in update-hydrus" --text="$*"; exit 1
+}
+
+# Ensure we have the venv set up
+if ! [ -f hydrus-runtime/installed ]; then
+    if
+        ./.create-environment | zenity --progress --pulsate --no-cancel --auto-close --text='Setting up virtual environment'
+        ! pipecheck
+    then
+        # If setup failed, warn user
+        error 'Could not create the virtual environment. Please run ./.create-environment in a terminal and check its output for errors.'
+    fi
+fi
+. hydrus-runtime/bin/activate
+
+# Check dependencies
+if ! python -c 'import wx' 2>/dev/null; then
+    error \
+'Please install wxpython.
+Depending on your system, it might be called "wxpython" or "python-wxgtk3.0".
+
+If your system does not provide this, please follow the guide at http://wiki.wxpython.org/CheckInstall'
+fi
+
+if ! python -c 'import cv' 2>/dev/null; then
+    error \
+'Please install pyopencv.
+Depending on your system, it might be called "python-opencv" or it may be packaged along with "opencv" itself.'
+fi
+
+if ! command -v git >/dev/null; then
+    error 'Please install git. This is used to update and rollback hydrus.'
+fi
+
+# Okay, hopefully that wasn't too painful.
+# Download source from git if it's not here already
+parse_git_clone_output() {
+    stdbuf -i0 -o0 tr '\r' '\n' | while IFS= read -r line; do
+        case $line in
+            "Receiving objects"*)
+                progress=${line#*: }
+                progress=${progress%%%*}
+                echo "$((progress / 2))"
+                ;;
+            "Resolving deltas"*)
+                progress=${line#*: }
+                progress=${progress%%%*}
+                [ "$progress" = 100 ] && progress=99
+                echo "$((50 + progress / 2))"
+                ;;
+        esac
+    done
+}
+
+if ! [ -d hydrus ]; then
+    if
+        git clone --progress https://github.com/hydrusnetwork/hydrus.git 2>&1 | parse_git_clone_output |
+            zenity --progress --no-cancel --auto-close --text='Cloning git repository'
+        ! pipecheck
+    then
+        error 'Failed to download the Hydrus source code. Try "git clone https://github.com/hydrusnetwork/hydrus.git" in the hydrus-updater directory.'
+    fi
+fi
+
+cd hydrus
+
+parse_git_other_output() {
+    stdbuf -i0 -o0 tr '\r' '\n' | while IFS= read -r line; do
+        case $line in
+            *": "[0-9]*"% ("*)
+                progress=${line#*: }
+                progress=${progress%%%*}
+                echo "$progress"
+                ;;
+        esac
+    done
+}
+
+# Update all versions from the repository
+if
+    git fetch --all | parse_git_other_output |
+        zenity --progress --no-cancel --auto-close --text='Updating Hydrus'
+    ! pipecheck
+then
+    error "Failed to update the Hydrus source code. Try manually running 'git fetch --all' in the hydrus directory"
+fi
+
+# Ask the user what to update to
+update_to=$(zenity --forms --text='Update Hydrus' --add-combo='Desired version' --combo-values="latest|$(git tag -l | sort -nr | tr '\n' '|')")
+[ -z "$update_to" ] && exit
+[ "$update_to" = latest ] && update_to=master
+
+if
+    git checkout "$update_to" | parse_git_other_output |
+        zenity --progress --no-cancel --auto-close --text='Switching Hydrus version'
+    ! pipecheck
+then
+    error "Failed to switch Hydrus version. Try manually running 'git checkout $update_to' in the hydrus directory"
+else
+    zenity --info --text="Successfully updated Hydrus to $update_to (commit id: $(git rev-parse --short HEAD))"
+fi
+
+true # We win

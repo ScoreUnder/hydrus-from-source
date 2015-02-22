@@ -1,0 +1,4 @@
+#!/bin/sh
+[ -r hydrus/server.pyw ] || ./update-hydrus || exit
+. hydrus-runtime/bin/activate
+exec python2 hydrus/server.pyw "$@"

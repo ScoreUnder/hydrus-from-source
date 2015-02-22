@@ -1,0 +1,15 @@
+#!/bin/sh
+# Remove old virtual environment if it exists
+rm -rf hydrus-runtime
+# Create a new one
+virtualenv2 --system-site-packages -p python2.7 hydrus-runtime || exit
+# Use it from here on
+. hydrus-runtime/bin/activate || exit
+# Fix possible issues with hardened kernels (set PAX-flags to allow RWX memory mappings)
+( cd hydrus-runtime/bin
+  setfattr -n user.pax.flags -v em python* pip* )
+# Install most packages except wxpython & opencv
+pip install beautifulsoup4 pyyaml python-potr hsaudiotag PyPDF2 flvlib pafy lz4 numpy Twisted || exit
+# Make the environment relocatable (i.e. can be moved to a different path and still work)
+virtualenv2 --relocatable hydrus-runtime || exit
+echo 'This file tells the launcher script that the right python packages have been installed' > hydrus-runtime/installed
