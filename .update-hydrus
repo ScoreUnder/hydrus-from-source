@@ -169,13 +169,18 @@ update_to=$(zenity --forms --text='Update Hydrus' --add-list='Desired version' -
 [ "$update_to" = latest ] && update_to=master
 
 if
-    git checkout "$update_to" | parse_git_other_output |
-        zenity --progress --no-cancel --auto-close --text='Switching Hydrus version'
-    ! pipecheck
+    (git checkout "$update_to"
+    ) | parse_git_other_output |
+        zenity --progress --no-cancel --auto-close --text='Switching Hydrus version' \
+     && if [ "$update_to" = master ]
+        then git merge --ff --ff-only origin/master
+        else :
+        fi \
+     && pipecheck
 then
-    error "Failed to switch Hydrus version. Try manually running 'git checkout $update_to' in the hydrus directory"
-else
     zenity --info --text="Successfully updated Hydrus to $update_to (commit id: $(git rev-parse --short HEAD))"
+else
+    error "Failed to switch Hydrus version. Try manually running 'git checkout $update_to' in the hydrus directory"
 fi
 
 true # We win
